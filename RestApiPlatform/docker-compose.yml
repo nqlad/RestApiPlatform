@@ -1,0 +1,41 @@
+version: '3'
+
+volumes:
+    composer_data:
+
+services:
+    nginx:
+        container_name: nginx
+        image: nginx:alpine
+        volumes:
+            - .:/app:ro
+            - ./.dev/nginx/nginx.conf:/etc/nginx/nginx.conf
+        ports:
+            - "8080:80"
+        depends_on:
+            - api
+
+    api:
+        container_name: api
+        build:
+            context: ""
+        environment:
+            - APP_ENV=dev
+            - DATABASE_URL=pgsql://postgres:password@postgres/postgres
+        volumes:
+            - .:/app
+            - composer_data:/var/run/composer
+        ports:
+            - "9001:9001"
+        depends_on:
+            - postgres
+
+    postgres:
+        container_name: postgres
+        image: postgres:latest
+        environment:
+            - POSTGRES_PASSWORD=password
+            - POSTGRES_USER=postgres
+            - POSTGRES_DB=postgres
+        ports:
+            - "5444:5432"
